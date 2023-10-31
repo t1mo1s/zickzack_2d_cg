@@ -2,6 +2,7 @@
 
 // Include standard headers
 #include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include "AbstractGameObject.h"
 #include "Player.h"
@@ -17,6 +18,7 @@ using namespace glm;
 #include <common/shader.hpp>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 int main( void )
 {
@@ -34,7 +36,7 @@ int main( void )
 
 	//start animation loop until escape key is pressed
 	do{
-
+        initializeVertexbuffer();
     updateAnimationLoop();
 
 	} // Check if the ESC key was pressed or the window was closed
@@ -50,11 +52,46 @@ int main( void )
 	return 0;
 }
 
+void drawCircle(float centerX, float centerY, float radius, int segments)
+{
+    // Kreis zeichnen mit dem Mittelpunkt (centerX, centerY) und Radius radius
+    std::vector<float> circleVertices;
+    float angleIncrement = 2 * M_PI / segments;
+
+    for (int i = 0; i < segments; ++i) {
+        float angle = i * angleIncrement;
+        float x = centerX + radius * std::cos(angle);
+        float y = centerY + radius * std::sin(angle);
+        circleVertices.push_back(x);
+        circleVertices.push_back(y);
+        circleVertices.push_back(0.0f); // Z-Koordinate (0.0f für 2D)
+    }
+
+    GLuint circleVertexBuffer;
+    glGenBuffers(1, &circleVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, circleVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * circleVertices.size(), circleVertices.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, circleVertexBuffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    // Zeichne den Kreis
+    glDrawArrays(GL_TRIANGLE_FAN, 0, segments);
+
+    glDisableVertexAttribArray(0);
+
+    // Lösche den Vertex Buffer nach dem Zeichnen des Kreises
+    glDeleteBuffers(1, &circleVertexBuffer);
+}
+
 void updateAnimationLoop()
 {
   // Clear the screen
   glClear(GL_COLOR_BUFFER_BIT);
 
+
+  drawCircle(0.0f, 0.0f, 0.5f, 100);
   // Use our shader
   glUseProgram(programID);
 
@@ -71,7 +108,7 @@ void updateAnimationLoop()
   );
 
   // Draw the triangle !
-  glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
+  //glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
 
   glDisableVertexAttribArray(0);
 
@@ -79,6 +116,8 @@ void updateAnimationLoop()
   glfwSwapBuffers(window);
   glfwPollEvents();
 }
+
+
 
 bool initializeWindow()
 {
