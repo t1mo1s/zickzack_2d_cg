@@ -15,6 +15,11 @@ private:
 public:
     AbstractGameObject(float x, float y, float width, float height, std::string type);
 
+    // pure virtual move function
+    virtual void draw() = 0;
+
+
+
     // Setter und Getter für type
     void setType(const std::string& type);
     std::string getType() const;

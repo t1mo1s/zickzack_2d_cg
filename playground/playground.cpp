@@ -3,6 +3,8 @@
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
+#include "AbstractGameObject.h"
+#include "Player.h"
 
 // Include GLFW
 #include <glfw3.h>
@@ -14,6 +16,7 @@ using namespace glm;
 
 #include <common/shader.hpp>
 #include <iostream>
+#include <memory>
 
 int main( void )
 {

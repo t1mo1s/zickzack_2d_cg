@@ -63,6 +63,8 @@ add_executable(playground
 	common/shader.hpp
 		playground/AbstractGameObject.cpp
 		playground/AbstractGameObject.h
+		playground/Player.h
+		playground/Player.cpp
 )
 target_link_libraries(playground
 	${ALL_LIBS}
