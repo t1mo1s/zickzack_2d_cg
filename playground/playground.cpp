@@ -13,9 +13,11 @@ GLFWwindow* window;
 using namespace glm;
 
 #include <common/shader.hpp>
+#include <iostream>
 
 int main( void )
 {
+
   //Initialize window
   bool windowInitialized = initializeWindow();
   if (!windowInitialized) return -1;
