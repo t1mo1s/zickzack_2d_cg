@@ -14,14 +14,18 @@ GLFWwindow* window;
 // Include GLM
 #include <glm/glm.hpp>
 using namespace glm;
+using namespace std;
 
 #include <common/shader.hpp>
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <thread>
 
 int main( void )
 {
+    static float x = 0;
+    static float y = 0;
 
   //Initialize window
   bool windowInitialized = initializeWindow();
@@ -36,8 +40,16 @@ int main( void )
 
 	//start animation loop until escape key is pressed
 	do{
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+
         initializeVertexbuffer();
-    updateAnimationLoop();
+        updateAnimationLoop(x, y);
+
+        x += 0.01;
+        y += 0.02;
+
 
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
@@ -85,13 +97,14 @@ void drawCircle(float centerX, float centerY, float radius, int segments)
     glDeleteBuffers(1, &circleVertexBuffer);
 }
 
-void updateAnimationLoop()
+void updateAnimationLoop(float x, float y)
 {
+
+    // sleep for 1 second
   // Clear the screen
   glClear(GL_COLOR_BUFFER_BIT);
 
-
-  drawCircle(0.0f, 0.0f, 0.5f, 100);
+  drawCircle(0.0f+x, 0.0f+y, 0.5f, 100);
   // Use our shader
   glUseProgram(programID);
 
