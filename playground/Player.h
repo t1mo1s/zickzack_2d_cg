@@ -9,15 +9,13 @@
 
 class Player : public AbstractGameObject {
 private:
-    int hello;
+    int radius;
 
 public:
     Player(float x, float y, float width, float height, std::string type);
-    //get hello
-    int getHello() const;
 
     //move
-    void draw() override;
+    std::vector<float> draw() override;
 
 };
 

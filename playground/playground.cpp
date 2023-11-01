@@ -76,7 +76,7 @@ void drawCircle(float centerX, float centerY, float radius, int segments)
         float y = centerY + radius * std::sin(angle);
         circleVertices.push_back(x);
         circleVertices.push_back(y);
-        circleVertices.push_back(0.0f); // Z-Koordinate (0.0f für 2D)
+        circleVertices.push_back(0.01f); // Z-Koordinate (0.0f für 2D)
     }
 
     GLuint circleVertexBuffer;
@@ -89,7 +89,7 @@ void drawCircle(float centerX, float centerY, float radius, int segments)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Zeichne den Kreis
-    glDrawArrays(GL_TRIANGLE_FAN, 0, segments);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, circleVertices.size() / 3);
 
     glDisableVertexAttribArray(0);
 

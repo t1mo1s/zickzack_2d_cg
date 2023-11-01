@@ -4,6 +4,7 @@
 
 #include "AbstractGameObject.h"
 
+
 AbstractGameObject::AbstractGameObject(float x, float y, float width, float height, std::string type) {
     this->x = x;
     this->y = y;

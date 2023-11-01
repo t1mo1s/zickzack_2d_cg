@@ -2,6 +2,7 @@
 #define OPENGL_TEMPLATE_ABSTRACTGAMEOBJECT_H
 
 #include <iostream>
+#include <vector>
 
 class AbstractGameObject {
 private:
@@ -16,7 +17,7 @@ public:
     AbstractGameObject(float x, float y, float width, float height, std::string type);
 
     // pure virtual move function
-    virtual void draw() = 0;
+    virtual std::vector<float> draw() = 0;
 
 
 
