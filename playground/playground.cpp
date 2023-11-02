@@ -32,7 +32,7 @@ int main( void )
   if (!windowInitialized) return -1;
 
   //Initialize vertex buffer
-  bool vertexbufferInitialized = initializeVertexbuffer();
+  bool vertexbufferInitialized = initializeVertexbuffer(x ,y);
   if (!vertexbufferInitialized) return -1;
 
   // Create and compile our GLSL program from the shaders
@@ -41,14 +41,17 @@ int main( void )
 	//start animation loop until escape key is pressed
 	do{
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
 
-        initializeVertexbuffer();
-        updateAnimationLoop(x, y);
+        initializeVertexbuffer(x,y);
+        updateAnimationLoop();
 
-        x += 0.01;
-        y += 0.02;
+        x += 0.1;
+        y += 0.1;
+
+        // print the x and y coordinates
+        std::cout << "x: " << x << " y: " << y << std::endl;
 
 
 	} // Check if the ESC key was pressed or the window was closed
@@ -64,40 +67,8 @@ int main( void )
 	return 0;
 }
 
-void drawCircle(float centerX, float centerY, float radius, int segments)
-{
-    // Kreis zeichnen mit dem Mittelpunkt (centerX, centerY) und Radius radius
-    std::vector<float> circleVertices;
-    float angleIncrement = 2 * M_PI / segments;
 
-    for (int i = 0; i < segments; ++i) {
-        float angle = i * angleIncrement;
-        float x = centerX + radius * std::cos(angle);
-        float y = centerY + radius * std::sin(angle);
-        circleVertices.push_back(x);
-        circleVertices.push_back(y);
-        circleVertices.push_back(0.01f); // Z-Koordinate (0.0f für 2D)
-    }
-
-    GLuint circleVertexBuffer;
-    glGenBuffers(1, &circleVertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, circleVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * circleVertices.size(), circleVertices.data(), GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, circleVertexBuffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-    // Zeichne den Kreis
-    glDrawArrays(GL_TRIANGLE_FAN, 0, circleVertices.size() / 3);
-
-    glDisableVertexAttribArray(0);
-
-    // Lösche den Vertex Buffer nach dem Zeichnen des Kreises
-    glDeleteBuffers(1, &circleVertexBuffer);
-}
-
-void updateAnimationLoop(float x, float y)
+void updateAnimationLoop()
 {
 
     // sleep for 1 second
@@ -174,24 +145,25 @@ bool initializeWindow()
   return true;
 }
 
-bool initializeVertexbuffer()
+bool initializeVertexbuffer(float x, float y)
 {
-  glGenVertexArrays(1, &VertexArrayID);
-  glBindVertexArray(VertexArrayID);
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
 
-  vertexbuffer_size = 3;
-  static const GLfloat g_vertex_buffer_data[] = {
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f,  0.5f, 0.0f,
-  };
+    vertexbuffer_size = 3;
+    GLfloat g_vertex_buffer_data[] = {
+            -0.5f + x, -0.5f, 0.0f,
+            0.5f + x, -0.5f, 0.0f,
+            0.0f + x,  0.5f, 0.0f,
+    };
 
-  glGenBuffers(1, &vertexbuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-  return true;
+    return true;
 }
+
 
 bool cleanupVertexbuffer()
 {
