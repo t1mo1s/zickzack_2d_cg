@@ -104,7 +104,6 @@ void updateAnimationLoop(float x, float y)
   // Clear the screen
   glClear(GL_COLOR_BUFFER_BIT);
 
-  drawCircle(0.0f+x, 0.0f+y, 0.5f, 100);
   // Use our shader
   glUseProgram(programID);
 
@@ -121,7 +120,7 @@ void updateAnimationLoop(float x, float y)
   );
 
   // Draw the triangle !
-  //glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
+  glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
 
   glDisableVertexAttribArray(0);
 
@@ -182,9 +181,9 @@ bool initializeVertexbuffer()
 
   vertexbuffer_size = 3;
   static const GLfloat g_vertex_buffer_data[] = {
-    -1.0f, -1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    0.0f,  1.0f, 0.0f,
+    -0.5f, -0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    0.0f,  0.5f, 0.0f,
   };
 
   glGenBuffers(1, &vertexbuffer);
