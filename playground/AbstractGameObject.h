@@ -16,8 +16,9 @@ public:
     GLuint textureSampleID;
     GLuint texture;
     float width, height;
+    float x, y;
     std::string type;
-    bool isAlive;
+    bool isAlive = true;
     GLfloat matrix;
     GLuint MatrixID;
     GLuint vertexbuffer_size;
@@ -36,17 +37,14 @@ public:
     virtual void cleanupVAOs() = 0;
 
     // collision detection
-    virtual void checkCollision() = 0;
+    //virtual void checkCollision() = 0;
 
     // Setter und Getter für isAlive
-    void setIsAlive(bool alive);
-    bool getIsAlive() const;
+    bool IsAlive() const;
 
     // Getter und Setter für x, y, width, height
     float getX() const;
-    void setX(float x);
     float getY() const;
-    void setY(float y);
     float getWidth() const;
     float getHeight() const;
 };

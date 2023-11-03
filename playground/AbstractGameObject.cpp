@@ -5,9 +5,7 @@
 #include "AbstractGameObject.h"
 // Include GLFW
 #include <glfw3.h>
-GLFWwindow* window;
 
-// Include GLM
 
 AbstractGameObject::AbstractGameObject(float x, float y, float width, float height, std::string type) {
     this->x = x;
@@ -15,48 +13,31 @@ AbstractGameObject::AbstractGameObject(float x, float y, float width, float heig
     this->width = width;
     this->height = height;
     this->type = type;
-    this->isAlive = true;
 }
 
-void AbstractGameObject::setType(const std::string &type) {
-    AbstractGameObject::type = type;
-}
-
-std::string AbstractGameObject::getType() const {
-    return type;
-}
-
-void AbstractGameObject::setIsAlive(bool alive) {
-    isAlive = alive;
-}
-
-bool AbstractGameObject::getIsAlive() const {
-    return isAlive;
+bool AbstractGameObject::IsAlive() const {
+    return this->isAlive;
 }
 
 float AbstractGameObject::getX() const {
-    return x;
-}
-
-void AbstractGameObject::setX(float x) {
-    AbstractGameObject::x = x;
+    return this->x;
 }
 
 float AbstractGameObject::getY() const {
-    return y;
-}
-
-void AbstractGameObject::setY(float y) {
-    AbstractGameObject::y = y;
+    return this->y;
 }
 
 float AbstractGameObject::getWidth() const {
-    return width;
+    return this->width;
 }
 
 float AbstractGameObject::getHeight() const {
-    return height;
+    return this->height;
 }
+
+//void AbstractGameObject::checkCollision() {
+//}
+
 
 
 

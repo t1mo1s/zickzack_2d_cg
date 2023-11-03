@@ -8,15 +8,18 @@
 
 
 class Player : public AbstractGameObject {
-private:
-    int radius;
-
 public:
     Player(float x, float y, float width, float height, std::string type);
 
-    //move
-    std::vector<float> draw() override;
+    void draw() override;
 
+    void update() override;
+
+    void initializeVAOs() override;
+
+    void cleanupVAOs() override;
+
+    //void checkCollision() override;
 };
 
 

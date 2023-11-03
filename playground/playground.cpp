@@ -45,7 +45,7 @@ int main( void )
   if (!windowInitialized) return -1;
 
   //Initialize vertex buffer
-  bool vertexbufferInitialized = initializeVertexbuffer(x ,y);
+  bool vertexbufferInitialized = initializeVertexbuffer();
   if (!vertexbufferInitialized) return -1;
 
   // Create and compile our GLSL program from the shaders
@@ -65,7 +65,7 @@ int main( void )
         // Move the triangle
         x += movement;
         y += movement;
-        initializeVertexbuffer(x,y);
+        initializeVertexbuffer();
         updateAnimationLoop();
 
 
@@ -89,8 +89,6 @@ int main( void )
 
 void updateAnimationLoop()
 {
-
-    // sleep for 1 second
   // Clear the screen
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -164,16 +162,20 @@ bool initializeWindow()
   return true;
 }
 
-bool initializeVertexbuffer(float x, float y)
+bool initializeVertexbuffer()
 {
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
-    vertexbuffer_size = 3;
+    vertexbuffer_size = 6;
     GLfloat g_vertex_buffer_data[] = {
-            -0.5f + x, -0.5f, 0.0f,
-            0.5f + x, -0.5f, 0.0f,
-            0.0f + x,  0.5f, 0.0f,
+            -0.5f , -0.5f, 0.0f,
+            0.5f, -0.5f, 0.0f,
+            0.5f,  0.5f, 0.0f,
+
+            0.5f,  0.5f, 0.0f,
+            -0.5f,  0.5f, 0.0f,
+            -0.5f, -0.5f, 0.0f,
     };
 
     glGenBuffers(1, &vertexbuffer);
