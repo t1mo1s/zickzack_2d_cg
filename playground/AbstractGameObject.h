@@ -3,27 +3,40 @@
 
 #include <iostream>
 #include <vector>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+
 
 class AbstractGameObject {
-private:
+public:
+    // global variable for handling the vertex buffers of the game objects
+    GLuint vertexbuffer;
+    GLuint uvbuffer;
+    // for textures later
+    GLuint textureSampleID;
+    GLuint texture;
+    float width, height;
     std::string type;
     bool isAlive;
-    float x;
-    float y;
-    float width;
-    float height;
+    GLfloat matrix;
+    GLuint MatrixID;
+    GLuint vertexbuffer_size;
+    glm::mat4 translateMatrix;
+    float speed;
+    float radius;
+    bool isMoving;
 
-public:
+    // Constructor
     AbstractGameObject(float x, float y, float width, float height, std::string type);
 
-    // pure virtual move function
-    virtual std::vector<float> draw() = 0;
+    // pure virtual functions
+    virtual void draw() = 0;
+    virtual void update() = 0;
+    virtual void initializeVAOs() = 0;
+    virtual void cleanupVAOs() = 0;
 
-
-
-    // Setter und Getter für type
-    void setType(const std::string& type);
-    std::string getType() const;
+    // collision detection
+    virtual void checkCollision() = 0;
 
     // Setter und Getter für isAlive
     void setIsAlive(bool alive);

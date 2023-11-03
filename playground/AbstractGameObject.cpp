@@ -3,7 +3,11 @@
 //
 
 #include "AbstractGameObject.h"
+// Include GLFW
+#include <glfw3.h>
+GLFWwindow* window;
 
+// Include GLM
 
 AbstractGameObject::AbstractGameObject(float x, float y, float width, float height, std::string type) {
     this->x = x;
