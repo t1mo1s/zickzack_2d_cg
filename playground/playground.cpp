@@ -22,10 +22,23 @@ using namespace std;
 #include <vector>
 #include <thread>
 
+    // list of the game objects
+    std::vector<std::shared_ptr<AbstractGameObject>> gameObjects;
+
 int main( void )
 {
     static float x = 0;
     static float y = 0;
+
+    // standard matrix
+    glm::mat4 identity = glm::mat4(
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+            );
+
+    auto startTime = std::chrono::high_resolution_clock::now();
 
   //Initialize window
   bool windowInitialized = initializeWindow();
@@ -40,15 +53,21 @@ int main( void )
 
 	//start animation loop until escape key is pressed
 	do{
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float> elapsedTime = currentTime - startTime;
+        startTime = currentTime;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        // Calculate the movement based on the elapsed time and desired speed (e.g., 0.1 units per second)
+        float speed = 0.5f; // adjust the speed as needed
+        float deltaTime = elapsedTime.count();
+        float movement = speed * deltaTime;
 
-
+        // Move the triangle
+        x += movement;
+        y += movement;
         initializeVertexbuffer(x,y);
         updateAnimationLoop();
 
-        x += 0.1;
-        y += 0.1;
 
         // print the x and y coordinates
         std::cout << "x: " << x << " y: " << y << std::endl;
