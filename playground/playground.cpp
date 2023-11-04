@@ -23,6 +23,11 @@ using namespace std;
 float x = 0.0f;
 float up = 0.0f;
 
+
+//test mit vertex shader
+float xTranslation = /* Wert von x */;
+float yTranslation = /* Wert von y */;
+
 class GameObject {
 public:
     // global variable for handling the vertex buffers of the game objects
@@ -196,6 +201,10 @@ int main( void )
   // Create and compile our GLSL program from the shaders
   programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
 
+
+  // Get a handle for our "MVP" uniform
+    GLuint translationXID = glGetUniformLocation(programID, "translationX");
+    GLuint translationYID = glGetUniformLocation(programID, "translationY");
 
 	//start animation loop until escape key is pressed
 	do{
