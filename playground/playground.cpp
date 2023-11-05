@@ -60,20 +60,13 @@ public:
     std::string type;
     bool isAlive = true;
     GLfloat matrix;
-    GLuint MatrixID;
     GLuint vertexbuffer_size;
     glm::mat4 translateMatrix;
-    float speed;
-    float radius;
-    bool isMoving;
 
     // Constructor
-    GameObject(float x, float y, float width, float height, std::string type){
+    GameObject(float x, float y){
         this->x = x;
         this->y = y;
-        this->width = width;
-        this->height = height;
-        this->type = type;
     };
 
     // pure virtual functions
@@ -81,47 +74,16 @@ public:
     virtual void update() = 0;
     virtual bool initializeVAOs() = 0;
     virtual bool cleanupVAOs() = 0;
-
-    vec2 getTop();
-
-    // collision detection
-    //virtual void checkCollision() = 0;
-
-    // Setter und Getter für isAlive
-    bool IsAlive() const{
-        return this->isAlive;
-    };
-
-    // Getter und Setter für x, y, width, height
-    float getX() const{
-        return this->x;
-    };
-    float getY() const{
-        return this->y;
-    };
-    float getWidth() const {
-        return this->width;
-    };
-    float getHeight() const{
-        return this->height;
-    };
 };
 
 class layer : public GameObject {
 public:
-    layer(float x, float y, float width, float height, std::string type) : GameObject(x, y, width, height, type) {
+    layer(float x, float y) : GameObject(x, y) {
         this->x = x;
         this->y = y;
-        this->width = width;
-        this->height = height;
-        this->type = type;
     }
 
     void draw() override {
-
-        this->y = up;
-
-
         // Use our shader
         glUseProgram(programID);
 
@@ -194,11 +156,10 @@ class Ground : public GameObject {
 public:
     std::vector<float> verts;
 
-    Ground(float x, float y, float height, std::string type) : GameObject(x, y, width, height, type) {
+    Ground(float x, float y) : GameObject(x, y) {
 
         this->x = x;
         this->y = y;
-        this->type = type;
 
         //initialize the parallelogram
         verts.push_back(x);
@@ -296,16 +257,10 @@ class Groundleft : public GameObject {
 
 public:
     std::vector<float> verts;
-
-
-
-    Groundleft(float x, float y, float height, std::string type) : GameObject(x, y, width, height, type) {
+    Groundleft(float x, float y) : GameObject(x, y) {
 
         this->x = x;
         this->y = y;
-        this->height = height;
-        this->width = 1024/768 * height * 2;
-        this->type = type;
 
         //initialize the parallelogram
         verts.push_back(x);
@@ -401,16 +356,16 @@ public:
 };
 
     //create a player
-    std::shared_ptr<GameObject> Player = std::make_shared<layer>(0.0f, 0.0f, 0.5f, 0.5f, "player");
+    std::shared_ptr<GameObject> Player = std::make_shared<layer>(0.0f, 0.0f);
 
     //create a ground
-    std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.25, -1, 0.5, "ground");
+    std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.25, -1);
 
     //create a groundleft
-    std::shared_ptr<GameObject> groundleft = std::make_shared<Groundleft>(ground->width, ground->height, 0.5, "groundleft");
+    std::shared_ptr<GameObject> groundleft = std::make_shared<Groundleft>(ground->width, ground->height);
 
     //create a groundright
-    std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height, 0.5, "ground");
+    std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height);
 
     // list of all game objects
     std::vector<std::shared_ptr<GameObject>> gameObjects = {Player, ground, groundleft, ground2};
