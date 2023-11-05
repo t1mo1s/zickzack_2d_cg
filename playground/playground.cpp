@@ -23,10 +23,29 @@ using namespace std;
 float x = 0.0f;
 float up = 0.0f;
 
+glm::vec2 translate(glm::vec2 v, glm::vec2 trans) {
+    // Erstelle eine 3x3 Translationsmatrix aus dem Übersetzungsvektor
+    glm::mat3 translateMatrix = glm::mat3(
+            1, 0, trans.x,
+            0, 1, trans.y,
+            0, 0, 1
+    );
 
-//test mit vertex shader
-float xTranslation = /* Wert von x */;
-float yTranslation = /* Wert von y */;
+    // Füge eine homogene Koordinate hinzu und erstelle einen 3D-Vektor
+    glm::vec3 vector3D = glm::vec3(v.x, v.y, 1.0f);
+
+    // Multipliziere die Translationsmatrix mit dem 3D-Vektor mithilfe einer Schleife
+    glm::vec3 translatedVector(0.0f);
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            translatedVector[i] += translateMatrix[i][j] * vector3D[j];
+        }
+    }
+
+    // Extrahiere die x- und y-Komponenten des übersetzten Vektors und gib sie als vec2 zurück
+    return glm::vec2(translatedVector.x, translatedVector.y);
+}
+
 
 class GameObject {
 public:
@@ -170,8 +189,95 @@ public:
         };
 };
 
+class Ground : public GameObject {
+
+public:
+    Ground(float x, float y, float width, float height, std::string type) : GameObject(x, y, width, height, type) {
+        this->x = x;
+        this->y = y;
+        this->width = width;
+        this->height = height;
+        this->type = type;
+    }
+
+    void draw() override {
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // Use our shader
+        glUseProgram(programID);
+
+        // 1rst attribute buffer : vertices
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(
+                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+                3,  // size
+                GL_FLOAT,           // type
+                GL_FALSE,           // normalized?
+                0,                  // stride
+                (void*)0            // array buffer offset
+        );
+
+        // Draw the triangle !
+        glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
+
+        glDisableVertexAttribArray(0);
+
+        // Swap buffers
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    };
+
+    void update() override {
+        GLfloat newVertexData[] = {
+                -0.35f, -0.5f + up, 0.0f,
+                0.35f, -0.5f + up, 0.0f,
+                0.35f, 0.5f + up, 0.0f,
+                0.35f, 0.5f + up, 0.0f,
+                -0.35f, 0.5f + up, 0.0f,
+                -0.35f, -0.5f + up, 0.0f,
+        };
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+
+    bool initializeVAOs() override {
+        glGenVertexArrays(1, &uvbuffer);
+        glBindVertexArray(uvbuffer);
+
+        vertexbuffer_size = 6;
+        GLfloat g_vertex_buffer_data[] = {
+                -0.35f , -0.5f+up, 0.0f,
+                0.35f, -0.5f+up, 0.0f,
+                0.35f,  0.5f+up, 0.0f,
+
+                0.35f,  0.5f+up, 0.0f,
+                -0.35f,  0.5f+up, 0.0f,
+                -0.35f, -0.5f+up, 0.0f,
+        };
+
+        glGenBuffers(1, &this->vertexbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, this->vertexbuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+        return true;
+    };
+
+    bool cleanupVAOs() override {
+        glDeleteBuffers(1, &vertexbuffer);
+        glDeleteVertexArrays(1, &uvbuffer);
+        return true;
+    };
+};
+
     //create a player
     std::shared_ptr<GameObject> Player = std::make_shared<layer>(0.0f, 0.0f, 0.5f, 0.5f, "player");
+
+    // method to translate an vec2 with translate matrix
+
+
 
 int main( void )
 {
@@ -220,6 +326,9 @@ int main( void )
         Player->update();
         Player->draw();
 
+        // print the x and y coordinates
+        std::cout << "x: " << res.x << " y: " << res.y << std::endl;
+
 
         //initializeVertexbuffer();
         //updateAnimationLoop();
@@ -228,9 +337,6 @@ int main( void )
         if (glfwGetKey(window, GLFW_KEY_W)) {
             up += 0.01f;
         }
-
-        // print the x and y coordinates
-        std::cout << "x: " << x << " y: " << up << std::endl;
 
 
 	} // Check if the ESC key was pressed or the window was closed
