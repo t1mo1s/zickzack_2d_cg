@@ -72,23 +72,7 @@ public:
         this->y = y;
     };
 
-    // pure virtual functions
-    virtual void draw() = 0;
-    virtual void update() = 0;
-    virtual bool initializeVAOs() = 0;
-    virtual bool cleanupVAOs() = 0;
-};
-
-class layer : public GameObject {
-public:
-    layer(float x, float y) : GameObject(x, y) {
-        this->x = x;
-        this->y = y;
-    }
-
-    void draw() override {
-
-        // 1rst attribute buffer : vertices
+    void draw(){
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
@@ -105,8 +89,44 @@ public:
 
         glDisableVertexAttribArray(0);
 
-        // Swap buffers
     };
+
+    virtual void update() = 0;
+    virtual bool initializeVAOs(){
+        glGenVertexArrays(1, &uvbuffer);
+        glBindVertexArray(uvbuffer);
+        vertexbuffer_size = 6;
+
+        GLfloat g_vertex_buffer_data[] = {
+                1 , 0, 0,
+                0, 1, 0,
+                0,  0, 1,
+
+                1,0,0,
+                0,1,1,
+                0,0,1
+
+        };
+        glGenBuffers(1, &this->vertexbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, this->vertexbuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+        return true;
+    };
+
+    virtual bool cleanupVAOs(){
+                glDeleteBuffers(1, &vertexbuffer);
+                glDeleteVertexArrays(1, &uvbuffer);
+                return true;
+    };
+};
+
+class Player : public GameObject {
+public:
+    Player(float x, float y) : GameObject(x, y) {
+        this->x = x;
+        this->y = y;
+    }
 
     void update() override {
             GLfloat newVertexData[] = {
@@ -144,24 +164,19 @@ public:
 
             return true;
         };
-
-        bool cleanupVAOs() override {
-            glDeleteBuffers(1, &vertexbuffer);
-            glDeleteVertexArrays(1, &uvbuffer);
-            return true;
-        };
 };
 
 class Ground : public GameObject {
 
 public:
     std::vector<float> verts;
+    bool right = true;
 
-    Ground(float x, float y) : GameObject(x, y) {
+    Ground(float x, float y, bool right) : GameObject(x, y) {
 
         this->x = x;
         this->y = y;
-
+        this->right = right;
         //initialize the parallelogram
         verts.push_back(x);
         verts.push_back(y);
@@ -169,41 +184,25 @@ public:
         verts.push_back(x + 0.2);
         verts.push_back(y);
 
-        vec2 top_right = translate(vec2(verts[2], verts[3]), vec2(0.5*0.75, 0.5));
+        vec2 top_right;
+        vec2 top_left;
+        if (right == true) {
+            top_right = translate(vec2(verts[2], verts[3]), vec2(0.5 * 0.75, 0.5));
+            top_left = translate(vec2(verts[0], verts[1]), vec2(0.5 * 0.75, 0.5));
+        } else {
+            top_right = translate(vec2(verts[2], verts[3]), vec2(-0.5 * 0.75, 0.5));
+            top_left = translate(vec2(verts[0], verts[1]), vec2(-0.5 * 0.75, 0.5));
+        }
 
         verts.push_back(top_right.x);
         verts.push_back(top_right.y);
 
-        vec2 top_left = translate(vec2(verts[0], verts[1]), vec2(0.5*0.75, 0.5));
-
         verts.push_back(top_left.x);
         verts.push_back(top_left.y);
-
 
         this->height = verts[7];
         this->width = verts[6];
     }
-
-    void draw() override {
-        // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                3,  // size
-                GL_FLOAT,           // type
-                GL_FALSE,           // normalized?
-                0,                  // stride
-                (void*)0            // array buffer offset
-        );
-
-        // Draw the triangle !
-        glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
-
-        glDisableVertexAttribArray(0);
-
-        // Swap buffers
-    };
 
     void update() override {
         GLfloat newVertexData[] = {
@@ -219,150 +218,25 @@ public:
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
-
-    bool initializeVAOs() override {
-        glGenVertexArrays(1, &uvbuffer);
-        glBindVertexArray(uvbuffer);
-        vertexbuffer_size = 6;
-
-        GLfloat g_vertex_buffer_data[] = {
-                1 , 0, 0,
-                0, 1, 0,
-                0,  0, 1,
-
-                1,0,0,
-                0,1,1,
-                0,0,1
-
-        };
-        glGenBuffers(1, &this->vertexbuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, this->vertexbuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-        return true;
-    };
-
-    bool cleanupVAOs() override {
-        glDeleteBuffers(1, &vertexbuffer);
-        glDeleteVertexArrays(1, &uvbuffer);
-        return true;
-    };
-};
-
-
-class Groundleft : public GameObject {
-
-public:
-    std::vector<float> verts;
-    Groundleft(float x, float y) : GameObject(x, y) {
-
-        this->x = x;
-        this->y = y;
-
-        //initialize the parallelogram
-        verts.push_back(x);
-        verts.push_back(y);
-
-        verts.push_back(x + 0.2);
-        verts.push_back(y);
-
-        float test = 2;
-
-        vec2 top_right = translate(vec2(verts[2], verts[3]), vec2(-0.5*0.75*test, 0.5*test));
-
-        verts.push_back(top_right.x);
-        verts.push_back(top_right.y);
-
-        vec2 top_left = translate(vec2(verts[0], verts[1]), vec2(-0.5*0.75*test, 0.5*test));
-
-        verts.push_back(top_left.x);
-        verts.push_back(top_left.y);
-
-
-        this->height = verts[7];
-        this->width = verts[6];
-    }
-
-    void draw() override {
-        // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                3,  // size
-                GL_FLOAT,           // type
-                GL_FALSE,           // normalized?
-                0,                  // stride
-                (void*)0            // array buffer offset
-        );
-
-        // Draw the triangle !
-        glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
-
-        glDisableVertexAttribArray(0);
-
-        // Swap buffers
-    };
-
-    void update() override {
-        GLfloat newVertexData[] = {
-                verts[0], verts[1], 0.0f,
-                verts[2], verts[3], 0.0f,
-                verts[4], verts[5], 0.0f,
-
-                verts[4], verts[5], 0.0f,
-                verts[6], verts[7], 0.0f,
-                verts[0], verts[1], 0.0f,
-        };
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    bool initializeVAOs() override {
-        glGenVertexArrays(1, &uvbuffer);
-        glBindVertexArray(uvbuffer);
-        vertexbuffer_size = 6;
-
-        GLfloat g_vertex_buffer_data[] = {
-                1 , 0, 0,
-                0, 1, 0,
-                0,  0, 1,
-
-                1,0,0,
-                0,1,1,
-                0,0,1
-
-        };
-        glGenBuffers(1, &this->vertexbuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, this->vertexbuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-        return true;
-    };
-
-    bool cleanupVAOs() override {
-        glDeleteBuffers(1, &vertexbuffer);
-        glDeleteVertexArrays(1, &uvbuffer);
-        return true;
-    };
 };
 
     //create a player
-    std::shared_ptr<GameObject> Player = std::make_shared<layer>(0.0f, 0.0f);
+    std::shared_ptr<GameObject> Spieler = std::make_shared<Player>(0.0f, 0.0f);
 
     //create a ground
-    std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.25, -1);
+    std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.25, -1, true);
 
     //create a groundleft
-    std::shared_ptr<GameObject> groundleft = std::make_shared<Groundleft>(ground->width, ground->height);
+    std::shared_ptr<GameObject> groundleft = std::make_shared<Ground>(ground->width, ground->height,false);
 
     //create a groundright
-    std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height);
+    std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height, true);
 
     // list of all game objects
-    std::vector<std::shared_ptr<GameObject>> gameObjects = {Player, ground, groundleft, ground2};
+    std::vector<std::shared_ptr<GameObject>> gameObjects = {Spieler, ground, groundleft, ground2};
 //create a groundle
+
+
 int main( void )
 {
   //Initialize window
@@ -478,15 +352,6 @@ bool initializeWindow()
 
   // Dark blue background
   glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-  return true;
-}
-
-
-bool cleanupVertexbuffer()
-{
-  // Cleanup VBO
-  glDeleteBuffers(1, &vertexbuffer);
-  glDeleteVertexArrays(1, &VertexArrayID);
   return true;
 }
 
