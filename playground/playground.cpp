@@ -21,7 +21,10 @@ using namespace std;
 #include <thread>
 
 
-float x = 0.0f;
+auto startTime = std::chrono::high_resolution_clock::now();
+const double targetFPS = 120.0;
+const double frameTime = 1.0 / targetFPS;
+
 float up = 0.0f;
 
 glm::vec2 translate(glm::vec2 v, glm::vec2 trans) {
@@ -84,8 +87,6 @@ public:
     }
 
     void draw() override {
-        // Use our shader
-        glUseProgram(programID);
 
         // 1rst attribute buffer : vertices
         glEnableVertexAttribArray(0);
@@ -184,10 +185,6 @@ public:
     }
 
     void draw() override {
-
-        // Use our shader
-        glUseProgram(programID);
-
         // 1rst attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -287,10 +284,6 @@ public:
     }
 
     void draw() override {
-
-        // Use our shader
-        glUseProgram(programID);
-
         // 1rst attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -372,28 +365,9 @@ public:
 //create a groundle
 int main( void )
 {
-
-
-    // standard matrix
-    glm::mat4 identity = glm::mat4(
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
-            );
-
-    auto startTime = std::chrono::high_resolution_clock::now();
-    const double targetFPS = 120.0;
-    const double frameTime = 1.0 / targetFPS;
-
   //Initialize window
   bool windowInitialized = initializeWindow();
   if (!windowInitialized) return -1;
-
-  //Initialize vertex buffer
-  bool vertexbufferInitialized = initializeVertexbuffer();
-  if (!vertexbufferInitialized) return -1;
-
 
     //initialize the game objects
     for (auto &gameObject : gameObjects) {
@@ -403,56 +377,21 @@ int main( void )
   // Create and compile our GLSL program from the shaders
   programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
 
-
-  // Get a handle for our "MVP" uniform
-    GLuint translationXID = glGetUniformLocation(programID, "translationX");
-    GLuint translationYID = glGetUniformLocation(programID, "translationY");
-
 	//start animation loop until escape key is pressed
 	do{
-
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        double deltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime).count();
-
-        if (deltaTime < frameTime) {
-            double sleepTime = frameTime - deltaTime;
-            std::this_thread::sleep_for(std::chrono::duration<double>(sleepTime));
-            deltaTime = frameTime;  // Reset deltaTime after sleep
-        }
-
-
-        glClear(GL_COLOR_BUFFER_BIT);
-
-
-        //update and draw the game objects
-        for (auto &gameObject : gameObjects) {
-            gameObject->update();
-            gameObject->draw();
-        }
-
-
-
-
-
-        //initializeVertexbuffer();
-        //updateAnimationLoop();
-        // do everything neccessary to draw the player
-
-        if (glfwGetKey(window, GLFW_KEY_W)) {
-            up += 0.01f;
-        }
-
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        updateAnimationLoop();
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
 		   glfwWindowShouldClose(window) == 0 );
 
 	
   //Cleanup and close window
-  Player->cleanupVAOs();
-  cleanupVertexbuffer();
+
+    // Cleanup VBO
+    for (auto &gameObject : gameObjects) {
+        gameObject->cleanupVAOs();
+    }
+
   glDeleteProgram(programID);
 	closeWindow();
   
@@ -464,26 +403,33 @@ void updateAnimationLoop()
 {
   // Clear the screen
   glClear(GL_COLOR_BUFFER_BIT);
-
   // Use our shader
   glUseProgram(programID);
 
-  // 1rst attribute buffer : vertices
-  glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-  glVertexAttribPointer(
-    0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-    3,  // size
-    GL_FLOAT,           // type
-    GL_FALSE,           // normalized?
-    0,                  // stride
-    (void*)0            // array buffer offset
-  );
 
-  // Draw the triangle !
-  glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
+  //////
 
-  glDisableVertexAttribArray(0);
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    double deltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime).count();
+
+    if (deltaTime < frameTime) {
+        double sleepTime = frameTime - deltaTime;
+        std::this_thread::sleep_for(std::chrono::duration<double>(sleepTime));
+        deltaTime = frameTime;  // Reset deltaTime after sleep
+    }
+    //update and draw the game objects
+    for (auto &gameObject : gameObjects) {
+        gameObject->update();
+        gameObject->draw();
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_W)) {
+        up += 0.01f;
+    }
+
+
+  ///////
 
   // Swap buffers
   glfwSwapBuffers(window);
@@ -533,29 +479,6 @@ bool initializeWindow()
   // Dark blue background
   glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
   return true;
-}
-
-bool initializeVertexbuffer()
-{
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
-
-    vertexbuffer_size = 6;
-    GLfloat g_vertex_buffer_data[] = {
-            -0.35f , -0.5f+up, 0.0f,
-            0.35f, -0.5f+up, 0.0f,
-            0.35f,  0.5f+up, 0.0f,
-
-            0.35f,  0.5f+up, 0.0f,
-            -0.35f,  0.5f+up, 0.0f,
-            -0.35f, -0.5f+up, 0.0f,
-    };
-
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-    return true;
 }
 
 
