@@ -56,15 +56,10 @@ public:
     // global variable for handling the vertex buffers of the game objects
     GLuint vertexbuffer;
     GLuint uvbuffer;
-    // for textures later
-    GLuint textureSampleID;
     float width, height;
     float x, y;
-    std::string type;
-    bool isAlive = true;
-    GLfloat matrix;
-    GLuint vertexbuffer_size;
-    glm::mat4 translateMatrix;
+    //type of the game object
+    int type;
 
     // Constructor
     GameObject(float x, float y){
@@ -174,6 +169,7 @@ public:
 
     Ground(float x, float y, bool right) : GameObject(x, y) {
 
+        this->type = 1;
         this->x = x;
         this->y = y;
         this->right = right;
@@ -232,8 +228,11 @@ public:
     //create a groundright
     std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height, true);
 
-    // list of all game objects
-    std::vector<std::shared_ptr<GameObject>> gameObjects = {Spieler, ground, groundleft, ground2};
+    //create a ground left
+    std::shared_ptr<GameObject> groundleft2 = std::make_shared<Ground>(ground2->width, ground2->height,false);
+
+// list of all game objects
+    std::vector<std::shared_ptr<GameObject>> gameObjects = {Spieler, ground, groundleft, ground2, groundleft2};
 //create a groundle
 
 
