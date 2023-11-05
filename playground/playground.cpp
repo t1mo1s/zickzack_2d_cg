@@ -20,6 +20,7 @@ using namespace std;
 #include <vector>
 #include <thread>
 
+
 float x = 0.0f;
 float up = 0.0f;
 
@@ -120,7 +121,6 @@ public:
 
         this->y = up;
 
-        glClear(GL_COLOR_BUFFER_BIT);
 
         // Use our shader
         glUseProgram(programID);
@@ -143,8 +143,6 @@ public:
         glDisableVertexAttribArray(0);
 
         // Swap buffers
-        glfwSwapBuffers(window);
-        glfwPollEvents();
     };
 
     void update() override {
@@ -225,7 +223,6 @@ public:
     }
 
     void draw() override {
-        glClear(GL_COLOR_BUFFER_BIT);
 
         // Use our shader
         glUseProgram(programID);
@@ -248,8 +245,6 @@ public:
         glDisableVertexAttribArray(0);
 
         // Swap buffers
-        glfwSwapBuffers(window);
-        glfwPollEvents();
     };
 
     void update() override {
@@ -330,10 +325,13 @@ public:
 
         verts.push_back(top_left.x);
         verts.push_back(top_left.y);
+
+
+        this->height = verts[7];
+        this->width = verts[6];
     }
 
     void draw() override {
-        glClear(GL_COLOR_BUFFER_BIT);
 
         // Use our shader
         glUseProgram(programID);
@@ -356,8 +354,6 @@ public:
         glDisableVertexAttribArray(0);
 
         // Swap buffers
-        glfwSwapBuffers(window);
-        glfwPollEvents();
     };
 
     void update() override {
@@ -413,7 +409,12 @@ public:
     //create a groundleft
     std::shared_ptr<GameObject> groundleft = std::make_shared<Groundleft>(ground->width, ground->height, 0.5, "groundleft");
 
-    //create a groundle
+    //create a groundright
+    std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height, 0.5, "ground");
+
+    // list of all game objects
+    std::vector<std::shared_ptr<GameObject>> gameObjects = {Player, ground, groundleft, ground2};
+//create a groundle
 int main( void )
 {
 
@@ -427,6 +428,8 @@ int main( void )
             );
 
     auto startTime = std::chrono::high_resolution_clock::now();
+    const double targetFPS = 120.0;
+    const double frameTime = 1.0 / targetFPS;
 
   //Initialize window
   bool windowInitialized = initializeWindow();
@@ -437,9 +440,11 @@ int main( void )
   if (!vertexbufferInitialized) return -1;
 
 
+    //initialize the game objects
+    for (auto &gameObject : gameObjects) {
+        gameObject->initializeVAOs();
+    }
 
-    ground->initializeVAOs();
-    groundleft->initializeVAOs();
   // Create and compile our GLSL program from the shaders
   programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
 
@@ -450,20 +455,25 @@ int main( void )
 
 	//start animation loop until escape key is pressed
 	do{
+
         auto currentTime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<float> elapsedTime = currentTime - startTime;
-        startTime = currentTime;
+        double deltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime).count();
 
-        // Calculate the movement based on the elapsed time and desired speed (e.g., 0.1 units per second)
-        float speed = 0.5f; // adjust the speed as needed
-        float deltaTime = elapsedTime.count();
-        float movement = speed * deltaTime;
+        if (deltaTime < frameTime) {
+            double sleepTime = frameTime - deltaTime;
+            std::this_thread::sleep_for(std::chrono::duration<double>(sleepTime));
+            deltaTime = frameTime;  // Reset deltaTime after sleep
+        }
 
-        ground->update();
-        ground->draw();
 
-        groundleft->update();
-        groundleft->draw();
+        glClear(GL_COLOR_BUFFER_BIT);
+
+
+        //update and draw the game objects
+        for (auto &gameObject : gameObjects) {
+            gameObject->update();
+            gameObject->draw();
+        }
 
 
 
@@ -478,6 +488,8 @@ int main( void )
         }
 
 
+        glfwSwapBuffers(window);
+        glfwPollEvents();
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
 		   glfwWindowShouldClose(window) == 0 );
