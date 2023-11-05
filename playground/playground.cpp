@@ -25,6 +25,7 @@ auto startTime = std::chrono::high_resolution_clock::now();
 const double targetFPS = 120.0;
 const double frameTime = 1.0 / targetFPS;
 
+bool spacePressed = false;
 float up = 0.0f;
 
 glm::vec2 translate(glm::vec2 v, glm::vec2 trans) {
@@ -201,15 +202,25 @@ public:
     }
 
     void update() override {
-        GLfloat newVertexData[] = {
-                verts[0], verts[1], 0.0f,
-                verts[2], verts[3], 0.0f,
-                verts[4], verts[5], 0.0f,
 
-                verts[4], verts[5], 0.0f,
-                verts[6], verts[7], 0.0f,
-                verts[0], verts[1], 0.0f,
-        };
+            GLfloat newVertexData[] = {
+                    verts[0], verts[1], 0.0f,
+                    verts[2], verts[3], 0.0f,
+                    verts[4], verts[5], 0.0f,
+
+                    verts[4], verts[5], 0.0f,
+                    verts[6], verts[7], 0.0f,
+                    verts[0], verts[1], 0.0f,
+            };
+
+            if (spacePressed){
+                verts[1] -= 0.005;
+                verts[3] -= 0.005;
+                verts[5] -= 0.005;
+                verts[7] -= 0.005;
+            }
+
+
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -297,10 +308,17 @@ void updateAnimationLoop()
         gameObject->draw();
     }
 
-    if (glfwGetKey(window, GLFW_KEY_W)) {
-        up += 0.01f;
+    // process input
+    // if space is pressed switch the spacePressed variable
+    // if space is pressed a second time, switch the spacePressed variable again
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            spacePressed = true;
+    } else
+    {
+        spacePressed = false;
     }
-
+    // print space state
+    cout << spacePressed << endl;
 
   ///////
 
@@ -350,7 +368,7 @@ bool initializeWindow()
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
   // Dark blue background
-  glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   return true;
 }
 
