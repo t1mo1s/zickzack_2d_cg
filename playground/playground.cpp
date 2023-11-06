@@ -68,24 +68,7 @@ public:
         this->y = y;
     };
 
-    void draw(){
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                3,  // size
-                GL_FLOAT,           // type
-                GL_FALSE,           // normalized?
-                0,                  // stride
-                (void*)0            // array buffer offset
-        );
-
-        // Draw the triangle !
-        glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
-
-        glDisableVertexAttribArray(0);
-
-    };
+    virtual void draw() = 0;
 
     virtual void update() = 0;
     virtual bool initializeVAOs(){
@@ -119,6 +102,8 @@ public:
 
 class Player : public GameObject {
 public:
+
+
     Player(float x, float y) : GameObject(x, y) {
         this->x = x;
         this->y = y;
@@ -137,6 +122,30 @@ public:
             glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+    void draw() override{
+
+        GLuint isPlayerID = glGetUniformLocation(programID, "isPlayer");
+        glUniform1i(isPlayerID, 1);
+
+
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(
+                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+                3,  // size
+                GL_FLOAT,           // type
+                GL_FALSE,           // normalized?
+                0,                  // stride
+                (void*)0            // array buffer offset
+        );
+
+        // Draw the triangle !
+        glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
+
+        glDisableVertexAttribArray(0);
+
+    };
 
 
     bool initializeVAOs() override {
@@ -225,6 +234,28 @@ public:
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+    void draw(){
+        GLuint isPlayerID = glGetUniformLocation(programID, "isPlayer");
+        glUniform1i(isPlayerID, 0);
+
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(
+                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+                3,  // size
+                GL_FLOAT,           // type
+                GL_FALSE,           // normalized?
+                0,                  // stride
+                (void*)0            // array buffer offset
+        );
+
+        // Draw the triangle !
+        glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
+
+        glDisableVertexAttribArray(0);
+
+    };
 };
 
     //create a player
@@ -253,6 +284,8 @@ int main( void )
   bool windowInitialized = initializeWindow();
   if (!windowInitialized) return -1;
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //initialize the game objects
     for (auto &gameObject : gameObjects) {
         gameObject->initializeVAOs();
@@ -368,7 +401,7 @@ bool initializeWindow()
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
   // Dark blue background
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
   return true;
 }
 
