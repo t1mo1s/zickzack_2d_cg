@@ -274,7 +274,7 @@ public:
     std::shared_ptr<GameObject> groundleft2 = std::make_shared<Ground>(ground2->width, ground2->height,false);
 
 // list of all game objects
-    std::vector<std::shared_ptr<GameObject>> gameObjects = {Spieler, ground, groundleft, ground2, groundleft2};
+    std::vector<std::shared_ptr<GameObject>> gameObjects = { ground, groundleft, ground2, groundleft2};
 //create a groundle
 
 
@@ -287,9 +287,11 @@ int main( void )
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //initialize the game objects
+    Spieler->initializeVAOs();
     for (auto &gameObject : gameObjects) {
         gameObject->initializeVAOs();
     }
+
 
   // Create and compile our GLSL program from the shaders
   programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
@@ -335,11 +337,15 @@ void updateAnimationLoop()
         std::this_thread::sleep_for(std::chrono::duration<double>(sleepTime));
         deltaTime = frameTime;  // Reset deltaTime after sleep
     }
+
+
     //update and draw the game objects
     for (auto &gameObject : gameObjects) {
         gameObject->update();
         gameObject->draw();
     }
+    Spieler->update();
+    Spieler->draw();
 
     // process input
     // if space is pressed switch the spacePressed variable
