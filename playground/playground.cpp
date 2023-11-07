@@ -20,13 +20,15 @@ using namespace std;
 #include <vector>
 #include <thread>
 
+float aspect= 768.0/1024.0;
 
 auto startTime = std::chrono::high_resolution_clock::now();
 const double targetFPS = 120.0;
 const double frameTime = 1.0 / targetFPS;
 
 bool spacePressed = false;
-float up = 0.0f;
+
+float xT = 0.0015 / aspect;
 
 glm::vec2 translate(glm::vec2 v, glm::vec2 trans) {
     // Erstelle eine 3x3 Translationsmatrix aus dem Übersetzungsvektor
@@ -102,21 +104,25 @@ public:
 
 class Player : public GameObject {
 public:
+    float xC, yC;
 
 
     Player(float x, float y) : GameObject(x, y) {
         this->x = x;
         this->y = y;
+        this->xC = 0.5;
+        this->yC = 0.1;
     }
 
     void update() override {
             GLfloat newVertexData[] = {
-                    -0.35f, -0.5f + up, 0.0f,
-                    0.35f, -0.5f + up, 0.0f,
-                    0.35f, 0.5f + up, 0.0f,
-                    0.35f, 0.5f + up, 0.0f,
-                    -0.35f, 0.5f + up, 0.0f,
-                    -0.35f, -0.5f + up, 0.0f,
+                    -1, -1, 0.0f,
+                    1, -1, 0.0f,
+                    1, 0, 0.0f,
+
+                    1, 0.0f, 0.0f,
+                    -1, 0.0f, 0.0f,
+                    -1, -1, 0.0f,
             };
             glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
             glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
@@ -125,8 +131,16 @@ public:
 
     void draw() override{
 
+        xC += xT;
+
         GLuint isPlayerID = glGetUniformLocation(programID, "isPlayer");
         glUniform1i(isPlayerID, 1);
+
+        // head the xC and yC to the fragment shader
+        GLuint xCID = glGetUniformLocation(programID, "xC");
+        glUniform1f(xCID, xC);
+        GLuint yCID = glGetUniformLocation(programID, "yC");
+        glUniform1f(yCID, yC);
 
 
         glEnableVertexAttribArray(0);
@@ -154,13 +168,13 @@ public:
 
             vertexbuffer_size = 6;
             GLfloat g_vertex_buffer_data[] = {
-                    -0.35f , -0.5f+up, 0.0f,
-                    0.35f, -0.5f+up, 0.0f,
-                    0.35f,  0.5f+up, 0.0f,
+                    -0.35f , -0.5f, 0.0f,
+                    0.35f, -0.5f, 0.0f,
+                    0.35f,  0.5f, 0.0f,
 
-                    0.35f,  0.5f+up, 0.0f,
-                    -0.35f,  0.5f+up, 0.0f,
-                    -0.35f, -0.5f+up, 0.0f,
+                    0.35f,  0.5f, 0.0f,
+                    -0.35f,  0.5f, 0.0f,
+                    -0.35f, -0.5f, 0.0f,
             };
 
             glGenBuffers(1, &this->vertexbuffer);
@@ -222,12 +236,11 @@ public:
                     verts[0], verts[1], 0.0f,
             };
 
-            if (spacePressed){
-                verts[1] -= 0.005;
-                verts[3] -= 0.005;
-                verts[5] -= 0.005;
-                verts[7] -= 0.005;
-            }
+                verts[1] -= 0.0025;
+                verts[3] -= 0.0025;
+                verts[5] -= 0.0025;
+                verts[7] -= 0.0025;
+
 
 
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -262,7 +275,7 @@ public:
     std::shared_ptr<GameObject> Spieler = std::make_shared<Player>(0.0f, 0.0f);
 
     //create a ground
-    std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.25, -1, true);
+    std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.0, 0, true);
 
     //create a groundleft
     std::shared_ptr<GameObject> groundleft = std::make_shared<Ground>(ground->width, ground->height,false);
@@ -273,8 +286,10 @@ public:
     //create a ground left
     std::shared_ptr<GameObject> groundleft2 = std::make_shared<Ground>(ground2->width, ground2->height,false);
 
+std::shared_ptr<GameObject> groundleft3 = std::make_shared<Ground>(groundleft2->width*1, groundleft2->height,true);
+
 // list of all game objects
-    std::vector<std::shared_ptr<GameObject>> gameObjects = { ground, groundleft, ground2, groundleft2};
+    std::vector<std::shared_ptr<GameObject>> gameObjects = { ground, groundleft, ground2, groundleft2, groundleft3};
 //create a groundle
 
 
@@ -350,14 +365,18 @@ void updateAnimationLoop()
     // process input
     // if space is pressed switch the spacePressed variable
     // if space is pressed a second time, switch the spacePressed variable again
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-            spacePressed = true;
-    } else
-    {
-        spacePressed = false;
-    }
     // print space state
-    cout << spacePressed << endl;
+
+    //  if d key is pressed, translate the player to the right
+    //  if a key is pressed, translate the player to the left
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        xT = -0.001;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        xT = 0.001;
+    }
+
+
 
   ///////
 
