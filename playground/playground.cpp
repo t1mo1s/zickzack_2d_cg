@@ -28,7 +28,7 @@ const double frameTime = 1.0 / targetFPS;
 
 bool spacePressed = false;
 
-float xT = 0.0015 / aspect;
+float xT = 0;
 
 glm::vec2 translate(glm::vec2 v, glm::vec2 trans) {
     // Erstelle eine 3x3 Translationsmatrix aus dem Übersetzungsvektor
@@ -71,7 +71,6 @@ public:
     };
 
     virtual void draw() = 0;
-
     virtual void update() = 0;
     virtual bool initializeVAOs(){
         glGenVertexArrays(1, &uvbuffer);
@@ -131,7 +130,7 @@ public:
 
     void draw() override{
 
-        xC += xT;
+        xC += xT ;
 
         GLuint isPlayerID = glGetUniformLocation(programID, "isPlayer");
         glUniform1i(isPlayerID, 1);
@@ -190,9 +189,11 @@ class Ground : public GameObject {
 public:
     std::vector<float> verts;
     bool right = true;
+    float changeL = 0.0f;
 
-    Ground(float x, float y, bool right) : GameObject(x, y) {
+    Ground(float x, float y, float fac, bool right) : GameObject(x, y) {
 
+        this->changeL = fac;
         this->type = 1;
         this->x = x;
         this->y = y;
@@ -207,11 +208,11 @@ public:
         vec2 top_right;
         vec2 top_left;
         if (right == true) {
-            top_right = translate(vec2(verts[2], verts[3]), vec2(0.5 * 0.75, 0.5));
-            top_left = translate(vec2(verts[0], verts[1]), vec2(0.5 * 0.75, 0.5));
+            top_right = translate(vec2(verts[2], verts[3]), vec2(0.5 * 0.75 * changeL, 0.5* changeL));
+            top_left = translate(vec2(verts[0], verts[1]), vec2(0.5 * 0.75 * changeL, 0.5* changeL));
         } else {
-            top_right = translate(vec2(verts[2], verts[3]), vec2(-0.5 * 0.75, 0.5));
-            top_left = translate(vec2(verts[0], verts[1]), vec2(-0.5 * 0.75, 0.5));
+            top_right = translate(vec2(verts[2], verts[3]), vec2(-0.5 * 0.75* changeL, 0.5* changeL));
+            top_left = translate(vec2(verts[0], verts[1]), vec2(-0.5 * 0.75* changeL, 0.5* changeL));
         }
 
         verts.push_back(top_right.x);
@@ -271,25 +272,130 @@ public:
     };
 };
 
+class Start : public GameObject {
+public:
+    float xC, yC;
+    std::vector<float> verts;
+
+    Start(float x, float y) : GameObject(x, y) {
+        this->x = x;
+        this->y = y;
+        this->xC = 0.5;
+        this->yC = 0.1;
+
+        //initialize the parallelogram
+        verts.push_back(-1);
+        verts.push_back(-1);
+
+        verts.push_back(1);
+        verts.push_back(-1);
+
+        verts.push_back(1);
+        verts.push_back(0);
+
+        verts.push_back(-1);
+        verts.push_back(0);
+
+    }
+
+    void update() override {
+        GLfloat newVertexData[] = {
+                verts[0], verts[1], 0.0f,
+                verts[2], verts[3], 0.0f,
+                verts[4], verts[5], 0.0f,
+
+                verts[4], verts[5], 0.0f,
+                verts[6], verts[7], 0.0f,
+                verts[0], verts[1], 0.0f,
+
+        };
+        verts[1] -= 0.0025;
+        verts[3] -= 0.0025;
+        verts[5] -= 0.0025;
+        verts[7] -= 0.0025;
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    void draw() override{
+
+        xC += xT;
+
+        GLuint isPlayerID = glGetUniformLocation(programID, "isPlayer");
+        glUniform1i(isPlayerID, 0);
+
+        // head the xC and yC to the fragment shader
+        GLuint xCID = glGetUniformLocation(programID, "xC");
+        glUniform1f(xCID, xC);
+        GLuint yCID = glGetUniformLocation(programID, "yC");
+        glUniform1f(yCID, yC);
+
+
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(
+                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+                3,  // size
+                GL_FLOAT,           // type
+                GL_FALSE,           // normalized?
+                0,                  // stride
+                (void*)0            // array buffer offset
+        );
+
+        // Draw the triangle !
+        glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
+
+        glDisableVertexAttribArray(0);
+
+    };
+
+
+    bool initializeVAOs() override {
+        glGenVertexArrays(1, &uvbuffer);
+        glBindVertexArray(uvbuffer);
+
+        vertexbuffer_size = 6;
+        GLfloat g_vertex_buffer_data[] = {
+                -0.35f , -0.5f, 0.0f,
+                0.35f, -0.5f, 0.0f,
+                0.35f,  0.5f, 0.0f,
+
+                0.35f,  0.5f, 0.0f,
+                -0.35f,  0.5f, 0.0f,
+                -0.35f, -0.5f, 0.0f,
+        };
+
+        glGenBuffers(1, &this->vertexbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, this->vertexbuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+        return true;
+    };
+};
+
     //create a player
     std::shared_ptr<GameObject> Spieler = std::make_shared<Player>(0.0f, 0.0f);
 
+    // create start
+    std::shared_ptr<GameObject> beg = std::make_shared<Start>(-1,-1);
+
     //create a ground
-    std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.0, 0, true);
+    std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.0, 0, 1,  true);
 
     //create a groundleft
-    std::shared_ptr<GameObject> groundleft = std::make_shared<Ground>(ground->width, ground->height,false);
+    std::shared_ptr<GameObject> groundleft = std::make_shared<Ground>(ground->width, ground->height, 2,false);
 
     //create a groundright
-    std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height, true);
+    std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height, 0.2, true);
 
     //create a ground left
-    std::shared_ptr<GameObject> groundleft2 = std::make_shared<Ground>(ground2->width, ground2->height,false);
+    std::shared_ptr<GameObject> groundleft2 = std::make_shared<Ground>(ground2->width, ground2->height, 1,false);
 
-std::shared_ptr<GameObject> groundleft3 = std::make_shared<Ground>(groundleft2->width*1, groundleft2->height,true);
+std::shared_ptr<GameObject> groundleft3 = std::make_shared<Ground>(groundleft2->width*1, groundleft2->height, 3,true);
 
 // list of all game objects
-    std::vector<std::shared_ptr<GameObject>> gameObjects = { ground, groundleft, ground2, groundleft2, groundleft3};
+    std::vector<std::shared_ptr<GameObject>> gameObjects = { beg,ground, groundleft, ground2, groundleft2, groundleft3};
 //create a groundle
 
 
@@ -362,21 +468,12 @@ void updateAnimationLoop()
     Spieler->update();
     Spieler->draw();
 
-    // process input
-    // if space is pressed switch the spacePressed variable
-    // if space is pressed a second time, switch the spacePressed variable again
-    // print space state
-
-    //  if d key is pressed, translate the player to the right
-    //  if a key is pressed, translate the player to the left
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        xT = -0.001;
+        xT = -0.0010;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        xT = 0.001;
+        xT = 0.0010;
     }
-
-
 
   ///////
 
