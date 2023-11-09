@@ -29,6 +29,7 @@ const double frameTime = 1.0 / targetFPS;
 bool spacePressed = false;
 
 float xT = 0;
+float yT = 0;
 
 glm::vec2 translate(glm::vec2 v, glm::vec2 trans) {
     // Erstelle eine 3x3 Translationsmatrix aus dem Übersetzungsvektor
@@ -110,17 +111,17 @@ public:
         this->x = x;
         this->y = y;
         this->xC = 0.5;
-        this->yC = 0.1;
+        this->yC = 0.75*1/4;
     }
 
     void update() override {
             GLfloat newVertexData[] = {
                     -1, -1, 0.0f,
                     1, -1, 0.0f,
-                    1, 0, 0.0f,
+                    1, 1, 0.0f,
 
-                    1, 0.0f, 0.0f,
-                    -1, 0.0f, 0.0f,
+                    1, 1.0f, 0.0f,
+                    -1, 1.0f, 0.0f,
                     -1, -1, 0.0f,
             };
             glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -129,6 +130,8 @@ public:
     }
 
     void draw() override{
+        x = (xC-0.5)*2;
+        y = ((yC/(768.0/1024.0))-0.5)*2;
 
         xC += xT ;
 
@@ -237,10 +240,10 @@ public:
                     verts[0], verts[1], 0.0f,
             };
 
-                verts[1] -= 0.0025;
-                verts[3] -= 0.0025;
-                verts[5] -= 0.0025;
-                verts[7] -= 0.0025;
+                verts[1] -= 0.00025;
+                verts[3] -= 0.00025;
+                verts[5] -= 0.00025;
+                verts[7] -= 0.00025;
 
 
 
@@ -309,10 +312,10 @@ public:
                 verts[0], verts[1], 0.0f,
 
         };
-        verts[1] -= 0.0025;
-        verts[3] -= 0.0025;
-        verts[5] -= 0.0025;
-        verts[7] -= 0.0025;
+        verts[1] -= 0.00025;
+        verts[3] -= 0.00025;
+        verts[5] -= 0.00025;
+        verts[7] -= 0.00025;
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertexData), newVertexData);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -449,7 +452,8 @@ void updateAnimationLoop()
 
   //////
 
-
+    // print the player coords
+    std::cout << "Player x: " << Spieler->x << " Player y: " << (Spieler->y) << std::endl;
     auto currentTime = std::chrono::high_resolution_clock::now();
     double deltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime).count();
 
@@ -469,10 +473,13 @@ void updateAnimationLoop()
     Spieler->draw();
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        xT = -0.0010;
+        xT = -0.00010;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        xT = 0.0010;
+        xT = 0.00010;
+    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        yT = 0.00010;
     }
 
   ///////
