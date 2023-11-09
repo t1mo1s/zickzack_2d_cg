@@ -3,7 +3,6 @@
 // Include standard headers
 #include <stdio.h>
 #include <iostream>
-#include <stdlib.h>
 
 // Include GLFW
 #include <glfw3.h>
@@ -20,16 +19,11 @@ using namespace std;
 #include <vector>
 #include <thread>
 
-float aspect= 768.0/1024.0;
-
 auto startTime = std::chrono::high_resolution_clock::now();
 const double targetFPS = 120.0;
 const double frameTime = 1.0 / targetFPS;
 
-bool spacePressed = false;
-
 float xT = 0;
-float yT = 0;
 
 bool gameover = false;
 
@@ -70,6 +64,7 @@ class GameObject {
 public:
     std::vector<float> verts;
 
+    float changeL = 0.0f;
     // global variable for handling the vertex buffers of the game objects
     GLuint vertexbuffer;
     GLuint uvbuffer;
@@ -184,7 +179,6 @@ public:
 
     };
 
-
     bool initializeVAOs() override {
             glGenVertexArrays(1, &uvbuffer);
             glBindVertexArray(uvbuffer);
@@ -212,7 +206,7 @@ class Ground : public GameObject {
 
 public:
     bool right = true;
-    float changeL = 0.0f;
+
 
     Ground(float x, float y, float fac, bool right) : GameObject(x, y) {
 
@@ -423,19 +417,14 @@ public:
     };
 };
 
-    //create a player
     std::shared_ptr<GameObject> Spieler = std::make_shared<Player>(0.0f, 0.0f);
 
-    // create start
     std::shared_ptr<GameObject> beg = std::make_shared<Start>(-1,-1);
 
-    //create a ground
     std::shared_ptr<GameObject> ground = std::make_shared<Ground>(-0.0, 0, 1,  true);
 
-    //create a groundleft
     std::shared_ptr<GameObject> groundleft = std::make_shared<Ground>(ground->width, ground->height, 2,false);
 
-    //create a groundright
     std::shared_ptr<GameObject> ground2 = std::make_shared<Ground>(groundleft->width, groundleft->height, 0.2, true);
 
     std::shared_ptr<GameObject> ground3 = std::make_shared<Ground>(ground2->width, ground2->height, 0.2, false);
@@ -450,17 +439,7 @@ public:
 
     std::shared_ptr<GameObject> ground8 = std::make_shared<Ground>(ground7->width, ground7->height, 3, true);
 
-
-
-
-
-
-
-
-// list of all game objects
     std::vector<std::shared_ptr<GameObject>> gameObjects = { beg,ground, groundleft, ground2, ground3, ground4, ground5, ground6, ground7, ground8};
-//create a groundle
-
 
 int main( void )
 {
@@ -475,24 +454,15 @@ int main( void )
     for (auto &gameObject : gameObjects) {
         gameObject->initializeVAOs();
     }
+    // Create and compile our GLSL program from the shaders
+    programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
 
-    //test if the methode isPointInTriangle works
-
-
-  // Create and compile our GLSL program from the shaders
-  programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
-
-	//start animation loop until escape key is pressed
-	do{
+    do{
         updateAnimationLoop();
-	} // Check if the ESC key was pressed or the window was closed
+	}
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
 		   glfwWindowShouldClose(window) == 0 );
 
-	
-  //Cleanup and close window
-
-    // Cleanup VBO
     for (auto &gameObject : gameObjects) {
         gameObject->cleanupVAOs();
     }
@@ -511,162 +481,35 @@ void updateAnimationLoop()
   // Use our shader
   glUseProgram(programID);
 
+  bool ergebnis = true;
 
-  //////
-    bool col = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                  glm::vec2(ground->getVerts()[0], ground->getVerts()[1]),
-                                  glm::vec2(ground->getVerts()[2], ground->getVerts()[3]),
-                                  glm::vec2(ground->getVerts()[4], ground->getVerts()[5]))
-               &&
-               !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                  glm::vec2(ground->getVerts()[4], ground->getVerts()[5]),
-                                  glm::vec2(ground->getVerts()[6], ground->getVerts()[7]),
-                                  glm::vec2(ground->getVerts()[0], ground->getVerts()[1])
-               );
-
-    bool col2 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                  glm::vec2(beg->getVerts()[0], beg->getVerts()[1]),
-                                  glm::vec2(beg->getVerts()[2], beg->getVerts()[3]),
-                                  glm::vec2(beg->getVerts()[4], beg->getVerts()[5]))
-               &&
-               !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                  glm::vec2(beg->getVerts()[4], beg->getVerts()[5]),
-                                  glm::vec2(beg->getVerts()[6], beg->getVerts()[7]),
-                                  glm::vec2(beg->getVerts()[0], beg->getVerts()[1])
-               );
-
-    bool col3 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground2->getVerts()[0], ground2->getVerts()[1]),
-                                   glm::vec2(ground2->getVerts()[2], ground2->getVerts()[3]),
-                                   glm::vec2(ground2->getVerts()[4], ground2->getVerts()[5]))
-                &&
-                !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground2->getVerts()[4], ground2->getVerts()[5]),
-                                   glm::vec2(ground2->getVerts()[6], ground2->getVerts()[7]),
-                                   glm::vec2(ground2->getVerts()[0], ground2->getVerts()[1])
-                );
-
-    bool col4 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(groundleft->getVerts()[0], groundleft->getVerts()[1]),
-                                   glm::vec2(groundleft->getVerts()[2], groundleft->getVerts()[3]),
-                                   glm::vec2(groundleft->getVerts()[4], groundleft->getVerts()[5]))
-                &&
-                !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(groundleft->getVerts()[4], groundleft->getVerts()[5]),
-                                   glm::vec2(groundleft->getVerts()[6], groundleft->getVerts()[7]),
-                                   glm::vec2(groundleft->getVerts()[0], groundleft->getVerts()[1])
-                );
-
-    bool col5 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground3->getVerts()[0], ground3->getVerts()[1]),
-                                   glm::vec2(ground3->getVerts()[2], ground3->getVerts()[3]),
-                                   glm::vec2(ground3->getVerts()[4], ground3->getVerts()[5]))
-                &&
-                !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground3->getVerts()[4], ground3->getVerts()[5]),
-                                   glm::vec2(ground3->getVerts()[6], ground3->getVerts()[7]),
-                                   glm::vec2(ground3->getVerts()[0], ground3->getVerts()[1])
-                );
-
-    bool col6 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground4->getVerts()[0], ground4->getVerts()[1]),
-                                   glm::vec2(ground4->getVerts()[2], ground4->getVerts()[3]),
-                                   glm::vec2(ground4->getVerts()[4], ground4->getVerts()[5]))
-                &&
-                !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground4->getVerts()[4], ground4->getVerts()[5]),
-                                   glm::vec2(ground4->getVerts()[6], ground4->getVerts()[7]),
-                                   glm::vec2(ground4->getVerts()[0], ground4->getVerts()[1])
-                );
-
-    bool col7 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground5->getVerts()[0], ground5->getVerts()[1]),
-                                   glm::vec2(ground5->getVerts()[2], ground5->getVerts()[3]),
-                                   glm::vec2(ground5->getVerts()[4], ground5->getVerts()[5]))
-                &&
-                !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground5->getVerts()[4], ground5->getVerts()[5]),
-                                   glm::vec2(ground5->getVerts()[6], ground5->getVerts()[7]),
-                                   glm::vec2(ground5->getVerts()[0], ground5->getVerts()[1])
-                );
-
-    bool col8 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground6->getVerts()[0], ground6->getVerts()[1]),
-                                   glm::vec2(ground6->getVerts()[2], ground6->getVerts()[3]),
-                                   glm::vec2(ground6->getVerts()[4], ground6->getVerts()[5]))
-                &&
-                !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground6->getVerts()[4], ground6->getVerts()[5]),
-                                   glm::vec2(ground6->getVerts()[6], ground6->getVerts()[7]),
-                                   glm::vec2(ground6->getVerts()[0], ground6->getVerts()[1])
-                );
-
-    bool col9 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground7->getVerts()[0], ground7->getVerts()[1]),
-                                   glm::vec2(ground7->getVerts()[2], ground7->getVerts()[3]),
-                                   glm::vec2(ground7->getVerts()[4], ground7->getVerts()[5]))
-                &&
-                !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground7->getVerts()[4], ground7->getVerts()[5]),
-                                   glm::vec2(ground7->getVerts()[6], ground7->getVerts()[7]),
-                                   glm::vec2(ground7->getVerts()[0], ground7->getVerts()[1])
-                );
-
-    bool col10 = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground8->getVerts()[0], ground8->getVerts()[1]),
-                                   glm::vec2(ground8->getVerts()[2], ground8->getVerts()[3]),
-                                   glm::vec2(ground8->getVerts()[4], ground8->getVerts()[5]))
-                &&
-                !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
-                                   glm::vec2(ground8->getVerts()[4], ground8->getVerts()[5]),
-                                   glm::vec2(ground8->getVerts()[6], ground8->getVerts()[7]),
-                                   glm::vec2(ground8->getVerts()[0], ground8->getVerts()[1])
-                );
-
-
-    if (col && col2 && col3 && col4 && col5 && col6 && col7 && col8 && col9 && col10){gameover = true;}
-
-
-/*
-    for (auto &gameObject : gameObjects){
-
-        bool col = isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
+  for (auto &gameObject : gameObjects){
+      bool col = !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
                                       glm::vec2(gameObject->getVerts()[0], gameObject->getVerts()[1]),
                                       glm::vec2(gameObject->getVerts()[2], gameObject->getVerts()[3]),
                                       glm::vec2(gameObject->getVerts()[4], gameObject->getVerts()[5]))
                    &&
-                   isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
+                   !isPointInTriangle(glm::vec2(Spieler->x, Spieler->y),
                                       glm::vec2(gameObject->getVerts()[4], gameObject->getVerts()[5]),
                                       glm::vec2(gameObject->getVerts()[6], gameObject->getVerts()[7]),
                                       glm::vec2(gameObject->getVerts()[0], gameObject->getVerts()[1])
                    );
+        ergebnis = ergebnis && col;
+  }
 
-        if (col){
-            cout << "COLLISION\n";
-        }
+  if (ergebnis){
+        cout << "Game Over\n";
+        gameover = true;
+  }
 
-
-
-
-
-    }
-    */
-
-
-
-
-    // print the player coords
-    // std::cout << "Player x: " << Spieler->x << " Player y: " << (Spieler->y) << std::endl;
     auto currentTime = std::chrono::high_resolution_clock::now();
     double deltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime).count();
 
     if (deltaTime < frameTime) {
         double sleepTime = frameTime - deltaTime;
         std::this_thread::sleep_for(std::chrono::duration<double>(sleepTime));
-        deltaTime = frameTime;  // Reset deltaTime after sleep
+        deltaTime = frameTime;
     }
-
-
     //update and draw the game objects
     for (auto &gameObject : gameObjects) {
         gameObject->update();
@@ -691,13 +534,6 @@ void updateAnimationLoop()
         }
     }
 
-
-
-  ///////
-
-
-
-  // Swap buffers
   glfwSwapBuffers(window);
   glfwPollEvents();
 
