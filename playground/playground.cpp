@@ -55,6 +55,18 @@ glm::vec2 translate(glm::vec2 v, glm::vec2 trans) {
 }
 
 
+#include <glm/glm.hpp>
+
+bool isPointInTriangle(const glm::vec2& p, const glm::vec2& a, const glm::vec2& b, const glm::vec2& c) {
+    float detT = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+    float alpha = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) / detT;
+    float beta = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) / detT;
+    float gamma = 1 - alpha - beta;
+
+    return alpha >= 0 && beta >= 0 && gamma >= 0;
+}
+
+
 class GameObject {
 public:
     // global variable for handling the vertex buffers of the game objects
@@ -416,6 +428,8 @@ int main( void )
         gameObject->initializeVAOs();
     }
 
+    //test if the methode isPointInTriangle works
+
 
   // Create and compile our GLSL program from the shaders
   programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
@@ -452,8 +466,14 @@ void updateAnimationLoop()
 
   //////
 
+  // check if player is on the ground
+
+
+
+
+
     // print the player coords
-    std::cout << "Player x: " << Spieler->x << " Player y: " << (Spieler->y) << std::endl;
+    // std::cout << "Player x: " << Spieler->x << " Player y: " << (Spieler->y) << std::endl;
     auto currentTime = std::chrono::high_resolution_clock::now();
     double deltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime).count();
 
